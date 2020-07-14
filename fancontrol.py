@@ -1,4 +1,4 @@
-!#/usr/bin/env python3
+#!/usr/bin/env python3
 
 import subprocess
 import time
@@ -30,6 +30,7 @@ if __name__ == '__main__':
 	try:
 		while True:
 			temp = get_temp()
+			print("CPU Temp is " + str(temp))
 			step_idx = 0
 			pwm = 0
 
@@ -37,7 +38,7 @@ if __name__ == '__main__':
 				step_idx = i
 				if temp < temp_steps[i]:
 					break
-			
+
 			if step_idx == 0:
 				# temp is less or equal to first step, pwm is the minimum value
 				pwm = pwm_steps[0]
@@ -51,13 +52,15 @@ if __name__ == '__main__':
 				temp_low = temp_steps[step_idx -1]
 				temp_high = temp_steps[step_idx]
 				pwm = pwm_low + (temp - temp_low) * ( (pwm_high - pwm_low)/(temp_high - temp_low) )
-			
+
 			# apply new fan speed and wait until next loop
-			fan.value(pwm)
-			sleep(WAIT_TIME)
-	finally:
+			fan.value = pwm
+			print("PWM applied " + str(pwm))
+			time.sleep(WAIT_TIME)
+	except:
 		# process interrupted
 		print("Process terminated, fan will turn at max speed")
-		fan.value(1.0)
+		fan.value = 1.0
+		raise
 		sys.exit()
 
