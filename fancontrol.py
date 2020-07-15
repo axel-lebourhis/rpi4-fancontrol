@@ -13,7 +13,7 @@ WAIT_TIME = 5
 MAX_PWM = 1.0
 MIN_PWM = 0.5
 
-temp_steps = [55.0, 60.0, 65.0, 70.0]
+temp_steps = [60.0, 65.0, 70.0, 75.0]
 pwm_steps = [0.0, 0.5, 0.8, 1.0]
 
 log = logging.getLogger('fancontrol')
@@ -79,7 +79,7 @@ if __name__ == '__main__':
 			time.sleep(WAIT_TIME)
 	except:
 		# process interrupted
-		log.warn("Fan control interrupted")
+		log.warning("Fan control interrupted")
 		fan.off()
 		raise
 		sys.exit()
