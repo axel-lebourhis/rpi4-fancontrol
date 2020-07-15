@@ -1,8 +1,7 @@
 #!/bin/sh -e
 
-ln -s ./fancontrol.py /usr/bin/fancontrol.py
-chmod 755 ./fancontrol
-cp ./fancontrol /etc/init.d/.
+ln -sf ./fancontrol.py /usr/bin/fancontrol.py
+cp ./fancontrol.service /lib/systemd/system/.
 systemctl daemon-reload
-update-rc.d fancontrol defaults
-/etc/init.d/fancontrol start
+systemctl enable fancontrol.service
+systemctl start fancontrol.service
