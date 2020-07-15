@@ -3,7 +3,9 @@
 import subprocess
 import time
 import sys
+import logging
 
+from systemd.journal import JournalHandler
 from gpiozero import PWMOutputDevice
 
 GPIO_PIN = 17
@@ -14,29 +16,38 @@ MIN_PWM = 0.5
 temp_steps = [55.0, 60.0, 65.0, 70.0]
 pwm_steps = [0.0, 0.5, 0.8, 1.0]
 
+log = logging.getLogger('fancontrol')
+log_f = logging.Formatter("%(levelname)s %(message)s")
+log_h = JournalHandler()
+log_h.setFormatter(log_f)
+log.addHandler(log_h)
+log.setLevel(logging.DEBUG)
+
 def get_temp():
 	output = subprocess.run(['vcgencmd', 'measure_temp'], capture_output = True)
 	temp_str = output.stdout.decode()
 	try:
 		return float(temp_str.split('=')[1].split('\'')[0])
 	except(IndexError, ValueError):
+		log.error('Could not parse temp output.')
 		raise RuntimeError('Could not parse temp output.')
 
 if __name__ == '__main__':
 	if len(temp_steps) != len(pwm_steps):
+		log.error('Temp steps and PWM steps arrays are not of the same size.')
 		raise RuntimeError('Temp steps and PWM steps arrays are not of the same size.')
 
 	fan = PWMOutputDevice(GPIO_PIN, frequency=100)
 	fan.on()
 
-	print("Fan curve is:")
+	log.info("Fan curve is:")
 	for i in range(0, len(temp_steps)):
-		print("temp: " + str(temp_steps[i]) + " pwm: " + str(pwm_steps[i]) )
+		log.info("temp: " + str(temp_steps[i]) + " pwm: " + str(pwm_steps[i]) )
 
 	try:
 		while True:
 			temp = get_temp()
-			print("CPU Temp is " + str(temp))
+			log.info("CPU Temp is " + str(temp))
 			step_idx = 0
 			pwm = 0
 
@@ -63,12 +74,12 @@ if __name__ == '__main__':
 					pwm = MIN_PWM
 
 			# apply new fan speed and wait until next loop
-			print("PWM applied " + str(pwm))
+			log.info("PWM applied " + str(pwm))
 			fan.value = pwm
 			time.sleep(WAIT_TIME)
 	except:
 		# process interrupted
-		print("Fan control interrupted")
+		log.warn("Fan control interrupted")
 		fan.off()
 		raise
 		sys.exit()
